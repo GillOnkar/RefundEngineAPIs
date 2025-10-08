@@ -1,4 +1,21 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Identity.Web;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Authentication (Azure AD)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(options =>
+    {
+        builder.Configuration.Bind("AzureAd", options);
+
+        // optional — ensure correct audience check
+        options.TokenValidationParameters.ValidAudiences = new[]
+        {
+            builder.Configuration["AzureAd:Audience"]
+        };
+    },
+    options => { builder.Configuration.Bind("AzureAd", options); });
 
 // Add services to the container.
 
@@ -18,6 +35,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
